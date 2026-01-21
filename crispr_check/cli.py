@@ -1,6 +1,7 @@
 import argparse
 import csv
-from . import search, scoring
+
+from . import scoring, search
 
 
 def _write_csv(out_path, rows, fieldnames):

@@ -17,13 +17,13 @@ Run a simple local search (demo FASTA provided in tests):
 python -m crispr_check.cli search --guide GAGTCCGAGCAGAAGAAGA --pam NGG --fasta tests/data/small.fa --out results.csv
 ```
 
-## Week 1 (MVP) — checklist ✅
+## Week 1 (MVP) — checklist 
 - [x] Basic PAM-aware scanning and mismatch enumeration
 - [x] Position-weighted scoring + simple MIT-like score
 - [x] CLI `search` subcommand + CSV/TSV output
 - [x] Unit tests for scanning and scoring
 
-## Notes & Caveats ⚠️
+## Notes & Caveats 
 - This is an educational tool — **not** for clinical decision making. Wet-lab validation required.
 
 ---
