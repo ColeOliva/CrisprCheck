@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=42","wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "crispr_check"
+version = "0.1.0"
+description = "Lightweight CRISPR off-target quick-check for teaching and small labs"
+authors = [ { name = "ColeOliva" } ]
+readme = "README.md"
+requires-python = ">=3.8"
+
+[project.dependencies]
+biopython = "^1.79"
+pytest = {version = "^7.0", optional = true}
+
+[project.optional-dependencies]
+dev = ["pytest", "flake8"]
+
+[project.scripts]
+crispr-check = "crispr_check.cli:main"
