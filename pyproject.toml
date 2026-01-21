@@ -10,12 +10,12 @@ authors = [ { name = "ColeOliva" } ]
 readme = "README.md"
 requires-python = ">=3.8"
 
-[project.dependencies]
-biopython = "^1.79"
-pytest = {version = "^7.0", optional = true}
+dependencies = [
+    "biopython>=1.79",
+]
 
 [project.optional-dependencies]
-dev = ["pytest", "flake8"]
+dev = ["pytest>=7.0", "flake8"]
 
 [project.scripts]
 crispr-check = "crispr_check.cli:main"
