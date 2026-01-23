@@ -9,7 +9,9 @@ def _write_csv(out_path, rows, fieldnames):
         writer = csv.DictWriter(fh, fieldnames=fieldnames)
         writer.writeheader()
         for r in rows:
-            writer.writerow(r)
+            # filter out any extra keys so DictWriter doesn't raise
+            row_filtered = {k: r.get(k, "") for k in fieldnames}
+            writer.writerow(row_filtered)
 
 
 def _format_rows_for_table(rows, fields):

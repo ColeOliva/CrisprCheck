@@ -1,8 +1,8 @@
-import os
 import csv
+import os
 import tempfile
-
 from types import SimpleNamespace
+
 from crispr_check import cli, scoring
 
 
