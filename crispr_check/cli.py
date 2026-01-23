@@ -84,6 +84,7 @@ def main():
     p_search.add_argument("--max-mismatches", type=int, default=4)
     p_search.add_argument("--score-method", choices=["pw", "mit", "cfd", "cfd_full"], default="pw", help="Scoring method: pw=position-weighted, mit=MIT-like, cfd=CFD-like, cfd_full=CFD full table approximation")
     p_search.add_argument("--pretty", action="store_true", help="Show a human-friendly table on stdout")
+    p_search.add_argument("--cfd-table", default=None, help="Path to CFD table JSON file (optional) for cfd_full scoring")
     args = parser.parse_args()
     if args.cmd == "search":
         search_command(args)

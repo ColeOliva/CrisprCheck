@@ -127,3 +127,66 @@ def cfd_score_full(guide: str, target: str, pam: str = "NGG") -> float:
         score *= 0.92
 
     return max(0.0, score * 100.0)
+
+
+def load_cfd_table(path: str) -> dict:
+    """Load a CFD table from a JSON file.
+
+    Expected JSON format:
+    {
+      "pos_weights": [float,...],   # length == guide length (e.g., 20)
+      "sub_weights": {"A>G": 0.6, ...}
+    }
+
+    Returns a dict with keys `pos_weights` (list) and `sub_weights` (dict mapping tuples).
+    """
+    import json
+
+    with open(path, "r", encoding="utf-8") as fh:
+        data = json.load(fh)
+
+    pos = data.get("pos_weights")
+    sub = data.get("sub_weights")
+    # normalize substitution keys to tuple form
+    sub_norm = {}
+    if sub:
+        for k, v in sub.items():
+            if isinstance(k, str) and ">" in k:
+                a, b = k.split(">")
+                sub_norm[(a.upper(), b.upper())] = float(v)
+    return {"pos_weights": pos, "sub_weights": sub_norm}
+
+
+def cfd_score_with_table(guide: str, target: str, table: dict, pam: str = "NGG") -> float:
+    """Compute CFD score using a provided table dict (from `load_cfd_table`).
+
+    Table dict must contain `pos_weights` (list) and `sub_weights` (dict keyed by (a,b)).
+    If table is None, falls back to `cfd_score_full` behavior.
+    """
+    if table is None:
+        return cfd_score_full(guide, target, pam=pam)
+
+    g = guide.upper()
+    t = target.upper()
+    assert len(g) == len(t)
+    L = len(g)
+
+    pos_weights = table.get("pos_weights")
+    sub_weights = table.get("sub_weights") or {}
+
+    # validate or fallback
+    if not pos_weights or len(pos_weights) != L:
+        # fallback to generated positional profile
+        pos_weights = [((i + 1) / float(L)) ** 1.5 for i in range(L)]
+
+    score = 1.0
+    for i, (a, b) in enumerate(zip(g, t)):
+        if a != b:
+            w = sub_weights.get((a, b), 0.85)
+            penalty = pos_weights[i] * w
+            score *= max(0.0, 1.0 - penalty)
+
+    if pam.upper() != "NGG":
+        score *= 0.92
+
+    return max(0.0, score * 100.0)
