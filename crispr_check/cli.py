@@ -49,6 +49,7 @@ def search_command(args):
         "pw": scoring.position_weighted_score,
         "mit": scoring.mit_like_score,
         "cfd": scoring.cfd_score,
+        "cfd_full": scoring.cfd_score_full,
     }
     method = getattr(args, "score_method", "pw")
     func = score_funcs.get(method, scoring.position_weighted_score)
@@ -81,7 +82,7 @@ def main():
     p_search.add_argument("--fasta", required=True)
     p_search.add_argument("--out", default="results.csv")
     p_search.add_argument("--max-mismatches", type=int, default=4)
-    p_search.add_argument("--score-method", choices=["pw", "mit", "cfd"], default="pw", help="Scoring method: pw=position-weighted, mit=MIT-like, cfd=CFD-like")
+    p_search.add_argument("--score-method", choices=["pw", "mit", "cfd", "cfd_full"], default="pw", help="Scoring method: pw=position-weighted, mit=MIT-like, cfd=CFD-like, cfd_full=CFD full table approximation")
     p_search.add_argument("--pretty", action="store_true", help="Show a human-friendly table on stdout")
     args = parser.parse_args()
     if args.cmd == "search":
