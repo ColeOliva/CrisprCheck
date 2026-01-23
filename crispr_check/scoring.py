@@ -78,3 +78,52 @@ def cfd_score(guide: str, target: str, pam: str = "NGG") -> float:
         score *= 0.9
 
     return max(0.0, score * 100.0)
+
+
+def cfd_score_full(guide: str, target: str, pam: str = "NGG") -> float:
+    """More complete CFD-like score using positional weights and a substitution matrix.
+
+    This implementation is an educational re-creation of the CFD approach: it uses a
+    substitution weight for each mismatch type and a positional weight for each guide
+    position (20-nt guide assumed). The score is multiplicative across mismatches.
+    Returns value scaled 0-100.
+    """
+    g = guide.upper()
+    t = target.upper()
+    assert len(g) == len(t), "guide and target must have equal length"
+    L = len(g)
+
+    # Positional weights stronger near PAM-proximal (3') end. Sum scaled to ~1.0
+    # Using a triangular-like profile for demonstration; in full CFD this is empirical.
+    pos_weights = [((i + 1) / float(L)) ** 1.5 for i in range(L)]
+
+    # Substitution penalty weights for mismatch types (guide_base -> target_base).
+    # Values in (0,1], where larger means more damaging (higher penalty).
+    # These are illustrative and intended for educational MVP; replace with published table for production.
+    sub_weights = {
+        ("A", "C"): 0.8,
+        ("A", "G"): 0.6,
+        ("A", "T"): 0.9,
+        ("C", "A"): 0.8,
+        ("C", "G"): 0.7,
+        ("C", "T"): 0.6,
+        ("G", "A"): 0.6,
+        ("G", "C"): 0.7,
+        ("G", "T"): 0.8,
+        ("T", "A"): 0.9,
+        ("T", "C"): 0.6,
+        ("T", "G"): 0.8,
+    }
+
+    score = 1.0
+    for i, (a, b) in enumerate(zip(g, t)):
+        if a != b:
+            w = sub_weights.get((a, b), 0.85)
+            penalty = pos_weights[i] * w
+            score *= max(0.0, 1.0 - penalty)
+
+    # PAM mismatch penalty (if PAM argument is non-canonical, apply mild penalty)
+    if pam.upper() != "NGG":
+        score *= 0.92
+
+    return max(0.0, score * 100.0)
