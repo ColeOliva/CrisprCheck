@@ -55,3 +55,37 @@ def test_guide_with_N_bases_and_max_mismatches_boundary():
     # compare to a sequence with 2 mismatches (chr1_mut contains a mutation)
     hits2 = search.scan_fasta_for_guide(guide_exact, fasta, pam="NGG", max_mismatches=2)
     assert any(h["mismatches"] <= 2 for h in hits2)
+
+
+def test_reverse_complement_mapping_explicit():
+    import json
+
+    here = os.path.dirname(__file__)
+    guide = "GAGTCCGAGCAGAAGAAGA"
+    # reverse complement helper
+    def rc(s):
+        comp = {"A": "T", "T": "A", "G": "C", "C": "G"}
+        return "".join(comp.get(c, "N") for c in reversed(s))
+
+    rc_target = rc(guide)
+    # revcomp of PAM 'NGG' is 'CCN' - choose specific base for N
+    rev_pam = "CCA"
+    seq = ">rev\n" + "AAA" + rev_pam + rc_target + "TTT\n"
+    tmp = os.path.join(here, "data", "rev.fa")
+    with open(tmp, "w") as fh:
+        fh.write(seq)
+
+    hits = search.scan_fasta_for_guide(guide, tmp, pam="NGG", max_mismatches=0)
+    assert any(h["strand"] == "-" and h["target_seq"] == guide for h in hits)
+
+
+def test_multiple_nearby_hits():
+    here = os.path.dirname(__file__)
+    guide = "GAGTCCGAGCAGAAGAAGA"
+    seq = ">multi\n" + guide + "AGG" + "A" + guide + "AGG" + "\n"
+    tmp = os.path.join(here, "data", "multi.fa")
+    with open(tmp, "w") as fh:
+        fh.write(seq)
+
+    hits = search.scan_fasta_for_guide(guide, tmp, pam="NGG", max_mismatches=0)
+    assert len(hits) >= 2
