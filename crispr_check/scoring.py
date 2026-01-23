@@ -157,6 +157,20 @@ def load_cfd_table(path: str) -> dict:
     return {"pos_weights": pos, "sub_weights": sub_norm}
 
 
+def load_published_cfd() -> dict:
+    """Load the packaged "published" CFD table shipped with the package.
+
+    This returns the same dict format as `load_cfd_table`. The JSON file is
+    stored under `crispr_check/data/cfd_published.json`. Replace this file
+    with the official published CFD table values for production.
+    """
+    import os
+
+    here = os.path.dirname(__file__)
+    p = os.path.join(here, "data", "cfd_published.json")
+    return load_cfd_table(p)
+
+
 def cfd_score_with_table(guide: str, target: str, table: dict, pam: str = "NGG") -> float:
     """Compute CFD score using a provided table dict (from `load_cfd_table`).
 
