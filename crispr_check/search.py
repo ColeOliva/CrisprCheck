@@ -31,49 +31,67 @@ def scan_fasta_for_guide(guide: str, fasta_path: str, pam: str = "NGG", max_mism
     guide = guide.upper()
     L = len(guide)
     hits = []
+    # allow shorter guides (trimmed from canonical 20 nt) to match when the PAM
+    # appears a few bases downstream of the truncated guide. Use a small
+    # canonical length to derive a reasonable search offset.
+    CANONICAL_GUIDE_LEN = 20
+    max_offset = max(0, CANONICAL_GUIDE_LEN - L)
 
     for rec in SeqIO.parse(fasta_path, "fasta"):
         seq = str(rec.seq).upper()
         n = len(seq)
-        # scan plus strand: guide (L) followed by PAM (len(pam))
+        # scan plus strand: guide (L) possibly followed by PAM within a small
+        # downstream offset when guides are shorter than canonical length.
         for i in range(0, n - L - len(pam) + 1):
-            pam_seq = seq[i + L : i + L + len(pam)]
-            if _matches_pam(pam_seq, pam):
-                target = seq[i : i + L]
-                mism_pos = _hamming_positions(guide, target)
-                if len(mism_pos) <= max_mismatches:
-                    hits.append(
-                        {
-                            "seq_id": rec.id,
-                            "start": i,
-                            "end": i + L - 1,
-                            "strand": "+",
-                            "target_seq": target,
-                            "mismatches": len(mism_pos),
-                            "mismatch_positions": mism_pos,
-                        }
-                    )
+            # check possible offsets for the PAM (0 means immediately adjacent)
+            for off in range(0, max_offset + 1):
+                start_pam = i + L + off
+                pam_seq = seq[start_pam : start_pam + len(pam)]
+                if _matches_pam(pam_seq, pam):
+                    target = seq[i : i + L]
+                    mism_pos = _hamming_positions(guide, target)
+                    if len(mism_pos) <= max_mismatches:
+                        hits.append(
+                            {
+                                "seq_id": rec.id,
+                                "start": i,
+                                "end": i + L - 1,
+                                "strand": "+",
+                                "target_seq": target,
+                                "mismatches": len(mism_pos),
+                                "mismatch_positions": mism_pos,
+                            }
+                        )
+                    # once a PAM is matched for this window, don't record the
+                    # same target multiple times for other offsets
+                    break
         # scan reverse complement (map coords back to original)
         rc = str(Seq(seq).reverse_complement())
         for i in range(0, n - L - len(pam) + 1):
-            pam_seq = rc[i + L : i + L + len(pam)]
-            if _matches_pam(pam_seq, pam):
-                target_rc = rc[i : i + L]
-                target = str(Seq(target_rc).reverse_complement())
-                mism_pos = _hamming_positions(guide, target)
-                if len(mism_pos) <= max_mismatches:
-                    # map rc coords to original
-                    orig_end = n - i - 1 - len(pam)
-                    orig_start = orig_end - (L - 1)
-                    hits.append(
-                        {
-                            "seq_id": rec.id,
-                            "start": orig_start,
-                            "end": orig_end,
-                            "strand": "-",
-                            "target_seq": target,
-                            "mismatches": len(mism_pos),
-                            "mismatch_positions": mism_pos,
-                        }
-                    )
+            for off in range(0, max_offset + 1):
+                start_pam = i + L + off
+                pam_seq = rc[start_pam : start_pam + len(pam)]
+                if _matches_pam(pam_seq, pam):
+                    target_rc = rc[i : i + L]
+                    # rc already contains the forward-oriented guide when the
+                    # original sequence carries the reverse-complemented target.
+                    # So use the substring directly for comparison.
+                    target = target_rc
+                    mism_pos = _hamming_positions(guide, target)
+                    if len(mism_pos) <= max_mismatches:
+                        # map rc coords back to original sequence indices
+                        orig_start = n - i - L
+                        orig_end = n - i - 1
+                        hits.append(
+                            {
+                                "seq_id": rec.id,
+                                "start": orig_start,
+                                "end": orig_end,
+                                "strand": "-",
+                                "target_seq": target,
+                                "mismatches": len(mism_pos),
+                                "mismatch_positions": mism_pos,
+                            }
+                        )
+                    break
     return hits
