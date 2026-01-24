@@ -2,35 +2,12 @@
 import argparse
 import csv
 
-import click
 
 from . import scoring, search
 from .visualization import plot_efficiency, print_summary_statistics
 
 
-# Click CLI group for new commands
-@click.group()
-def cli():
-    """CRISPRCheck CLI (click-based commands)"""
-    pass
 
-@cli.command()
-@click.argument('csv_path', type=click.Path(exists=True))
-def stats(csv_path):
-    """Print summary statistics for efficiency/score columns in a results CSV file."""
-    print_summary_statistics(csv_path)
-
-@cli.command()
-@click.argument('csv_path', type=click.Path(exists=True))
-@click.option('--output', '-o', type=click.Path(), default=None, help='Path to save the plot image.')
-@click.option('--show', is_flag=True, help='Show the plot interactively.')
-def plot(csv_path, output, show):
-    """Plot efficiency distribution from a results CSV file."""
-    try:
-        plot_efficiency(csv_path, output_path=output, show=show)
-        click.echo(f"Plot created for {csv_path}.{' Displayed.' if show else ''}{' Saved to ' + output if output else ''}")
-    except Exception as e:
-        click.echo(f"Error: {e}", err=True)
 import argparse
 import csv
 
@@ -151,6 +128,31 @@ if __name__ == "__main__":
     import sys
     click_commands = {"plot", "stats"}
     if len(sys.argv) > 1 and sys.argv[1] in click_commands:
+        import click
+
+        @click.group()
+        def cli():
+            """CRISPRCheck CLI (click-based commands)"""
+            pass
+
+        @cli.command()
+        @click.argument('csv_path', type=click.Path(exists=True))
+        def stats(csv_path):
+            """Print summary statistics for efficiency/score columns in a results CSV file."""
+            print_summary_statistics(csv_path)
+
+        @cli.command()
+        @click.argument('csv_path', type=click.Path(exists=True))
+        @click.option('--output', '-o', type=click.Path(), default=None, help='Path to save the plot image.')
+        @click.option('--show', is_flag=True, help='Show the plot interactively.')
+        def plot(csv_path, output, show):
+            """Plot efficiency distribution from a results CSV file."""
+            try:
+                plot_efficiency(csv_path, output_path=output, show=show)
+                click.echo(f"Plot created for {csv_path}.{' Displayed.' if show else ''}{' Saved to ' + output if output else ''}")
+            except Exception as e:
+                click.echo(f"Error: {e}", err=True)
+
         cli()
     else:
         main()
