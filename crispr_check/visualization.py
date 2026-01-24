@@ -4,6 +4,7 @@ def print_summary_statistics(csv_path):
     Args:
         csv_path (str): Path to the results CSV file.
     """
+    import pandas as pd
     df = pd.read_csv(csv_path)
     # Find columns with efficiency or score
     eff_cols = [col for col in df.columns if 'eff' in col.lower() or 'score' in col.lower()]
@@ -17,10 +18,6 @@ def print_summary_statistics(csv_path):
 Visualization utilities for CRISPR results.
 """
 
-import matplotlib.pyplot as plt
-import pandas as pd
-
-
 def plot_efficiency(csv_path, output_path=None, show=False):
     """
     Plot efficiency results from a CSV file.
@@ -29,6 +26,8 @@ def plot_efficiency(csv_path, output_path=None, show=False):
         output_path (str, optional): Path to save the plot image. If None, does not save.
         show (bool): Whether to display the plot interactively.
     """
+    import matplotlib.pyplot as plt
+    import pandas as pd
     df = pd.read_csv(csv_path)
     # Try to find a column with efficiency or score
     eff_cols = [col for col in df.columns if 'eff' in col.lower() or 'score' in col.lower()]

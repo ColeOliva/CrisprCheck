@@ -2,16 +2,8 @@
 import argparse
 import csv
 
-
 from . import scoring, search
 from .visualization import plot_efficiency, print_summary_statistics
-
-
-
-import argparse
-import csv
-
-from . import scoring, search
 
 
 def _write_csv(out_path, rows, fieldnames):
